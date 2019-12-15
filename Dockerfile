@@ -1,26 +1,26 @@
-FROM debian:jessie
+FROM centos:6
 
-MAINTAINER Javier
+RUN yum -y install wget
+RUN wget -O /etc/yum.repos.d/home:kamailio:v4.4.x-rpms.repo http://download.opensuse.org/repositories/home:/kamailio:/v4.4.x-rpms/CentOS_6/home:kamailio:v4.4.x-rpms.repo
+RUN yum -y update
+RUN yum install -y kamailio kamailio-debuginfo kamailio-utils gdb kamailio-sqlite
 
-# Important! Update this no-op ENV variable when this Dockerfile
-# is updated with the current date. It will force refresh of all
-# of the base images and things like 'apt-get update' won't be using
-# old cached versions when the Dockerfile is built.
-ENV REFRESHED_AT 2019-11-18
+WORKDIR /etc/kamailio/
 
-# avoid httpredir errors
-RUN sed -i 's/httpredir/deb/g' /etc/apt/sources.list
+RUN echo "DBENGINE=SQLITE" >> kamctlrc
+RUN echo "DBHOST=localhost" >> kamctlrc
+RUN echo "DB_PATH="/usr/local/etc/kamailio/kamailio.sqlite"" >> kamctlrc
+RUN echo "INSTALL_EXTRA_TABLES=no" >> kamctlrc
+RUN echo "INSTALL_PRESENCE_TABLES=no" >> kamctlrc
+RUN echo "INSTALL_DBUID_TABLES=no" >> kamctlrc
 
-RUN rm -rf /var/lib/apt/lists/* && apt-get update &&   apt-get install --assume-yes gnupg wget
-# kamailio repo
-RUN echo "deb http://deb.kamailio.org/kamailio53 jessie main" >   /etc/apt/sources.list.d/kamailio.list
-RUN wget -O- http://deb.kamailio.org/kamailiodebkey.gpg | apt-key add -
+RUN mkdir /usr/local/etc/kamailio
+RUN touch /usr/local/etc/kamailio/kamailio.sqlite
 
-RUN apt-get update && apt-get install --assume-yes kamailio=5.3.1+jessie kamailio-autheph-modules=5.3.1+jessie kamailio-berkeley-bin=5.3.1+jessie kamailio-berkeley-modules=5.3.1+jessie kamailio-cnxcc-modules=5.3.1+jessie kamailio-cpl-modules=5.3.1+jessie kamailio-dbg=5.3.1+jessie kamailio-dnssec-modules=5.3.1+jessie kamailio-erlang-modules=5.3.1+jessie kamailio-extra-modules=5.3.1+jessie kamailio-geoip-modules=5.3.1+jessie kamailio-ims-modules=5.3.1+jessie kamailio-java-modules=5.3.1+jessie kamailio-json-modules=5.3.1+jessie kamailio-kazoo-modules=5.3.1+jessie kamailio-ldap-modules=5.3.1+jessie kamailio-lua-modules=5.3.1+jessie kamailio-memcached-modules=5.3.1+jessie kamailio-mono-modules=5.3.1+jessie kamailio-mysql-modules=5.3.1+jessie kamailio-nth=5.3.1+jessie kamailio-outbound-modules=5.3.1+jessie kamailio-perl-modules=5.3.1+jessie kamailio-postgres-modules=5.3.1+jessie kamailio-presence-modules=5.3.1+jessie kamailio-python-modules=5.3.1+jessie kamailio-python3-modules=5.3.1+jessie kamailio-rabbitmq-modules=5.3.1+jessie kamailio-radius-modules=5.3.1+jessie kamailio-redis-modules=5.3.1+jessie kamailio-ruby-modules=5.3.1+jessie kamailio-sctp-modules=5.3.1+jessie kamailio-snmpstats-modules=5.3.1+jessie kamailio-sqlite-modules=5.3.1+jessie kamailio-systemd-modules=5.3.1+jessie kamailio-tls-modules=5.3.1+jessie kamailio-unixodbc-modules=5.3.1+jessie kamailio-utils-modules=5.3.1+jessie kamailio-websocket-modules=5.3.1+jessie kamailio-xml-modules=5.3.1+jessie kamailio-xmpp-modules=5.3.1+jessie
+RUN /usr/sbin/kamdbctl create
 
-VOLUME /etc/kamailio
+RUN kamctl add 1000@dopensource.com opensourceisneat
 
-# clean
-RUN apt-get clean && rm -rf /var/lib/apt/lists/*
+EXPOSE 5060/udp
 
-ENTRYPOINT ["kamailio", "-DD", "-E"]
+CMD ["/usr/sbin/kamailio", "-m 64", "-M 8", "-D"]
