@@ -19,8 +19,6 @@ RUN touch /usr/local/etc/kamailio/kamailio.sqlite
 
 RUN /usr/sbin/kamdbctl create
 
-RUN kamctl add 1000@dopensource.com opensourceisneat
-
 EXPOSE 5060/udp
 
 CMD ["/usr/sbin/kamailio", "-m 64", "-M 8", "-D"]
