@@ -1,4 +1,4 @@
-FROM centos:6
+FROM centos:7
 
 RUN yum -y install wget
 RUN wget -O /etc/yum.repos.d/home:kamailio:v4.4.x-rpms.repo http://download.opensuse.org/repositories/home:/kamailio:/v4.4.x-rpms/CentOS_6/home:kamailio:v4.4.x-rpms.repo
